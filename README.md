@@ -1,325 +1,321 @@
-# Hindi PDF Semantic Search
+A Python-based tool that lets users search Hindi books by meaning, not just exact words. Users can ask questions in Hindi, Hinglish, or English and view matching passages from the original PDF pages.
 
-A complete, intelligent pipeline to OCR Hindi PDF books and search them semantically using advanced AI embeddings — in Hindi, Hinglish, or English.
+1. How It Works
 
-You ask a question in natural language (Devanagari, romanized Hindi, or English), the system finds the most relevant paragraphs across all your books with precise semantic understanding, flags questions that aren't actually about your books, and highlights exactly where the answer appears on the original page image.
+Add PDFs — place Hindi PDF books in the pdfs/ folder.
 
----
+Convert and extract text — PDF pages are converted to images and Hindi text is extracted with OCR.
 
-## Features
+Build the search index — extracted text is split into chunks, converted into embeddings, and saved in Qdrant.
 
-- ✅ Convert any Hindi PDF into searchable text via Tesseract OCR (400 DPI high-quality scanning)
-- ✅ Semantic (meaning-based) search powered by `BAAI/bge-m3` multilingual embeddings (1024-dim, superior Hindi understanding)
-- ✅ **Multi-script query input** — ask in Devanagari, Hinglish ("manushya jivan ka dhyey kya he"), or English; romanized queries are transliterated to Devanagari before embedding, since the index itself is built entirely in Devanagari
-- ✅ **Off-topic detection** — queries unrelated to the indexed books (e.g. general chit-chat) are caught by a relevance gate and shown a clear message, instead of returning a misleading low-confidence match
-- ✅ Adaptive result scoring — returns exactly as many results as the question deserves (no fixed limit)
-- ✅ Fuzzy OCR text matching — handles OCR drift between indexing and display time for reliable highlighting
-- ✅ Visual highlighting of matched text on the original book page (cropped paragraph zoom or full-page overlay)
-- ✅ Dark-themed Streamlit web UI with sidebar controls for fine-tuning search behavior
-- ✅ CLI search tool with OpenCV image viewer for terminal-based searches
-- ✅ Intelligent page filtering — indexes only content pages (filters out contact/publisher info)
+Ask a question — the question is converted into an embedding and compared with indexed book content.
 
----
+View results — the app shows relevant passages and highlights the matching text on the original page.
 
-## Tech Stack
+Pipeline note: Confirm whether convert_pdf.py performs both PDF-to-image conversion and OCR. The previous project notes mention a separate OCR script, but extract_text.py is not present in the listed project structure.
 
-| Component | Choice | Why |
-|---|---|---|
-| Web UI | Streamlit | Fast prototyping, built-in caching, dark theme support |
-| PDF → Images | pdf2image + Poppler | Reliable PDF parsing, 400 DPI per-page conversion |
-| OCR | Tesseract (`hin` language pack) | Industry-standard Hindi text recognition |
-| Embeddings | `BAAI/bge-m3` (1024-dim) | Superior multilingual quality, no prefix needed, high Hindi accuracy |
-| Transliteration | `indic-transliteration` (ITRANS scheme) | Converts romanized Hindi queries to Devanagari before search |
-| Vector DB | Qdrant (Docker) | Fast cosine similarity search, local persistence, clean API |
-| Image Processing | OpenCV + Pillow | Word-level coordinate extraction for precise highlighting |
-| ML Framework | PyTorch (via SentenceTransformers) | Automatic GPU support if available, reliable inference |
+2. Main Features
 
----
+Search book content by meaning.
 
-## Project Structure
+Accept Devanagari Hindi, romanized Hindi (Hinglish), and English queries.
 
-```
+Detect questions that appear unrelated to the indexed books.
+
+Show matching text with a cropped paragraph view or a highlighted full-page image.
+
+Provide a Streamlit web interface and a command-line search tool.
+
+Filter some non-content pages using configured keywords.
+
+3. Technology Used
+
+Component
+
+Purpose
+
+Python
+
+Main programming language
+
+Tesseract OCR
+
+Extract Hindi text from page images
+
+Poppler and pdf2image
+
+Convert PDF pages to images
+
+BAAI/bge-m3
+
+Convert text and questions into multilingual embeddings
+
+Qdrant
+
+Store and search embeddings
+
+Streamlit
+
+Web search interface
+
+OpenCV and Pillow
+
+Image processing and result highlighting
+
+indic-transliteration
+
+Convert supported romanized Hindi queries to Devanagari
+
+PyTorch and SentenceTransformers
+
+Run the embedding model
+
+4. Project Structure
+
 hindi_pdf_search/
-├── pdfs/                   # Place your Hindi PDF books here
-├── images/                 # Auto-generated: page images per book
-│   └── <book_name>/
-│       ├── page_001.jpg
-│       └── ...
-├── json/                   # Auto-generated: OCR text per book
-│   └── <book_name>.json
-├── qdrant_db/              # Local Qdrant vector database (Docker persisted)
-│
-├── config.py               # All settings: paths, model, OCR language, Qdrant
-├── convert_pdf.py          # PDF pages → JPG images (confirm: does this also run OCR? see note below)
-├── build_index.py          # JSON text → vector embeddings → Qdrant
-├── run_all.py              # Runs the pipeline steps automatically in sequence
-├── search_books.py         # CLI search with full-page image viewer
-├── app.py                  # Streamlit web search UI (recommended — has off-topic detection + multi-script input)
-│
-├── requirements.txt        # All Python dependencies
-├── check_setup.py          # Diagnostics: verify all dependencies are working
-├── check_points.py         # Verify Qdrant collection contents
-├── diagnose.py             # Additional diagnostics
-├── recreate_test.py        # One-off utility: test Qdrant collection recreation
-│
-└── README.md               # This file
-```
+├── pdfs/               # Input PDF books
+├── images/             # Generated page images
+├── json/               # Extracted OCR text, if generated by the pipeline
+├── qdrant_db/          # Local Qdrant data, if configured for persistence
+├── config.py           # Paths and search/OCR settings
+├── convert_pdf.py      # PDF conversion (confirm whether it also runs OCR)
+├── build_index.py      # Create and store text embeddings in Qdrant
+├── run_all.py          # Run the pipeline steps
+├── search_books.py     # Command-line search
+├── app.py              # Streamlit web app
+├── check_setup.py      # Check dependencies and setup
+├── check_points.py     # Check indexed Qdrant points
+├── diagnose.py         # Additional diagnostics
+├── requirements.txt    # Python dependencies
+└── README.md
 
-> **⚠️ To verify:** the previous README referenced a separate `extract_text.py` for the OCR step, but that file isn't present in the actual project folder. Confirm whether `convert_pdf.py` now handles both PDF→image conversion *and* OCR, or whether a file is missing/renamed — update `run_all.py`'s step list and this README's pipeline description accordingly once confirmed.
+5. Requirements
 
----
+Install or configure these before running the project:
 
-## Prerequisites
+Python and the packages in requirements.txt
 
-Install the following before running the pipeline:
+Tesseract OCR with the Hindi language pack (hin)
 
-### 1. Python packages
+Poppler for PDF-to-image conversion
 
-A `requirements.txt` is included. Install the pinned ML packages first (they need a specific CPU index URL on Windows), then the rest:
+Docker, to run Qdrant
 
-```bash
+The paths to Tesseract and Poppler must match the values in config.py.
+
+Install Python packages (Windows PowerShell)
+
+Activate the project's virtual environment:
+
+.\venv\Scripts\Activate.ps1
+
+If the environment does not exist yet, create it first:
+
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+Install the pinned CPU versions of PyTorch, then the remaining dependencies:
+
 python -m pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
 python -m pip install -r requirements.txt
-```
 
-> **Why pinned versions?** Letting `torch`/`transformers`/`sentence-transformers` float to "latest" has repeatedly pulled in unstable/bleeding-edge builds that break on import (missing attributes, broken internal imports). `requirements.txt` pins `torch==2.4.1`, `torchvision==0.19.1`, `transformers==4.44.2`, `accelerate==0.34.2`, and `sentence-transformers==3.1.1` together as a known-working combination.
+Installers:
 
-### 2. Tesseract OCR (Windows)
+Tesseract for Windows: urlTesseract installerhttps://github.com/UB-Mannheim/tesseract/wiki
 
-Download from: https://github.com/UB-Mannheim/tesseract/wiki
+Poppler for Windows: urlPoppler releaseshttps://github.com/oschwartz10612/poppler-windows/releases
 
-- Install to: `C:\Program Files\Tesseract-OCR\`
-- During install, select the **Hindi** language data (`hin`)
-- Update `TESSERACT_CMD` in `config.py` if installed elsewhere
+6. Run the Project
 
-### 3. Poppler (Windows)
+Step 1: Start Qdrant
 
-Download from: https://github.com/oschwartz10612/poppler-windows/releases
+docker run -d --name qdrant -p 6333:6333 qdrant/qdrant
 
-- Extract to match your `POPPLER_PATH` in `config.py`
-- Update `POPPLER_PATH` in `config.py` if extracted elsewhere
+Qdrant must be running before indexing or searching. If a container named qdrant already exists, start that container instead of creating another one.
 
-### 4. Qdrant (Docker)
+Step 2: Add PDF books
 
-```bash
-docker run -d -p 6333:6333 qdrant/qdrant
-```
+Place the books in the pdfs/ folder.
 
-Qdrant must be running before you run `build_index.py` or `app.py`.
+Step 3: Process the books and build the index
 
----
+Run the complete pipeline:
 
-## Quick Start
-
-### Step 1 — Activate Virtual Environment
-
-```bash
-.\venv\Scripts\Activate.ps1
-```
-
-You should see `(venv)` appear at the start of your terminal prompt.
-
-If you get an execution policy error, run:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-> **If `streamlit.exe` or other `.exe` files get blocked** by a "This file has been blocked by an Application Control policy" error, run the tool as a Python module instead, which usually routes around it: `python -m streamlit run app.py` instead of `streamlit run app.py`.
-
-### Step 2 — Add your PDFs
-
-Place your Hindi PDF books inside the `pdfs/` folder.
-
-### Option A — Run the full pipeline automatically
-
-```bash
 python run_all.py
-```
 
-### Option B — Run steps individually
+Or run the available steps separately:
 
-**Convert PDFs to images (and OCR — see note above about confirming this)**
-
-```bash
 python convert_pdf.py
-```
-
-**Build the search index**
-
-```bash
 python build_index.py
-```
 
-Splits each page into paragraph-aware chunks, generates multilingual embeddings, and uploads everything to Qdrant. **This always deletes and recreates the Qdrant collection from scratch.**
+Check run_all.py and convert_pdf.py to confirm the exact processing steps before relying on the commands above.
 
-> First run downloads the embedding model (~1.5 GB for BGE-M3, one-time only).
+Important: build_index.py recreates the Qdrant collection from scratch. Rebuilding may remove the existing indexed data before replacing it.
 
-### Step 3 — Search your books
+The first run downloads the BAAI/bge-m3 model (approximately 1.5 GB according to the project notes).
 
-**Option A — Web UI (recommended)**
-```bash
-streamlit run app.py
-```
-Opens at `http://localhost:8501`. Dark-themed interface, multi-script query input (Devanagari/Hinglish/English), off-topic detection, and highlighted page images.
+Step 4: Start the web app
 
-**Option B — Command-line search**
-```bash
+python -m streamlit run app.py
+
+Open http://localhost:8501 in your browser.
+
+Alternative: Command-line search
+
 python search_books.py
-```
-Interactive terminal loop. Type a query, see top results printed, then choose which page image to open in a viewer window with the matching paragraph highlighted in red.
 
-> **Note:** `search_books.py` currently has its own hard-coded `HARD_MIN = 0.25` and does not yet include the off-topic relevance gate that `app.py` has. Worth syncing the two if you want consistent behavior between the CLI and web versions.
+7. Important Configuration
 
----
+Update these settings in config.py when needed:
 
-## Adding New Books
+Setting
 
-1. Put the new PDF in `pdfs/`
-2. Run `python convert_pdf.py` (already-processed books are skipped)
-3. Run `python build_index.py` (this rebuilds the full Qdrant collection from scratch)
-4. Restart `app.py`
+Purpose
 
-Or simply:
-```bash
-python run_all.py
-```
+OCR_LANG
 
----
+OCR language, such as hin
 
-## Configuration (`config.py`)
+DPI
 
-| Setting | Default | Description |
-|---|---|---|
-| `OCR_LANG` | `hin` | Tesseract language code. Change to `guj` for Gujarati, `eng` for English |
-| `DPI` | `400` | Image resolution for PDF conversion. Higher = better OCR, slower |
-| `TESSERACT_CMD` | `C:\Program Files\Tesseract-OCR\tesseract.exe` | Path to Tesseract binary |
-| `POPPLER_PATH` | `D:\poppler-26.02.0\Library\bin` | Path to Poppler `bin` folder |
-| `EMBEDDING_MODEL` | `BAAI/bge-m3` | Sentence embedding model (higher quality than e5-small) |
-| `EMBEDDING_DIM` | `1024` | Vector dimension (must match model) |
-| `QDRANT_HOST` | `localhost` | Qdrant server host |
-| `QDRANT_PORT` | `6333` | Qdrant server port |
-| `COLLECTION_NAME` | `book_paragraphs` | Qdrant collection name |
-| `MAX_CHUNK_SIZE` | `500` | Max characters per paragraph-aware section chunk |
-| `MIN_CHUNK_LENGTH` | `25` | Drop chunks shorter than this (OCR noise) |
-| `KEEP_KEYWORDS` | `["प्रश्नकर्ता", "दादाश्री"]` | Only index pages containing these keywords |
+PDF image resolution; higher values may improve OCR but take longer
 
----
+TESSERACT_CMD
 
-## Diagnostics
+Path to the Tesseract executable
 
-Check that all dependencies are installed and working:
+POPPLER_PATH
 
-```bash
+Path to the Poppler bin directory
+
+EMBEDDING_MODEL
+
+Embedding model name
+
+EMBEDDING_DIM
+
+Embedding vector size; must match the model
+
+QDRANT_HOST / QDRANT_PORT
+
+Qdrant connection settings
+
+COLLECTION_NAME
+
+Qdrant collection name
+
+MAX_CHUNK_SIZE
+
+Maximum chunk size
+
+MIN_CHUNK_LENGTH
+
+Ignore chunks shorter than this length
+
+KEEP_KEYWORDS
+
+Keywords used to select pages for indexing
+
+The current project notes list प्रश्नकर्ता and दादाश्री as the default indexing keywords. Check config.py for the actual values in your working copy.
+
+8. Search Behaviour
+
+Semantic search: results are based on meaning, so exact wording is not always required.
+
+Hinglish input: romanized Hindi may be transliterated to Devanagari before searching. Results depend on how consistently the query is spelled.
+
+Off-topic detection: the web app has a relevance check intended to avoid showing misleading matches for unrelated questions.
+
+Result filtering: similarity thresholds control which matches are displayed.
+
+Highlighting: matched text is located on the original page image; OCR differences can affect highlighting accuracy.
+
+The project notes indicate that the CLI and web app do not use exactly the same relevance logic. In particular, search_books.py has a hard-coded minimum score and may not perform the same off-topic check as app.py.
+
+9. Diagnostics and Troubleshooting
+
+Run the setup check:
+
 python check_setup.py
-```
 
-Verify your Qdrant collection has data:
+Check whether Qdrant contains indexed points:
 
-```bash
 python check_points.py
-```
 
-If `check_points.py` (or the Qdrant dashboard at `http://localhost:6333/dashboard#/collections`) shows **0 points**, the index was never actually built — run `python build_index.py`.
+Problem
 
----
+What to check
 
-## Search UI Controls (Sidebar, in `app.py`)
+Python module is missing
 
-| Control | Range | Default | Effect |
-|---|---|---|---|
-| **Answer grouping gap** | 0.02–0.30 | 0.12 | How many results appear per query. Smaller = only closest matches, Larger = includes more loosely related results |
-| **Minimum score cutoff** | 0.10–0.60 | 0.40 | Drop individual results below this similarity score (filters out noise among otherwise-relevant results) |
-| **View mode** | 2 options | Cropped | Cropped Paragraph shows zoomed text block; Full Page Highlighted overlays box on entire page |
+Activate the virtual environment and install requirements.txt
 
-**Score interpretation:**
-- 🟢 **0.7–1.0** = Excellent semantic match
-- 🟡 **0.5–0.7** = Good relevant match
-- 🟠 **0.3–0.5** = Broad or weak correlation
-- 🔴 **Below the minimum cutoff** = Noise or not relevant
+Tesseract not found
 
-### Off-topic detection (separate from the slider above)
+Check TESSERACT_CMD and confirm the Hindi language pack is installed
 
-`RELEVANCE_THRESHOLD` (currently `0.4`, set in `app.py`, not adjustable from the sidebar) is a **separate gate** from "Minimum score cutoff." It answers a different question:
+Poppler not found
 
-- `RELEVANCE_THRESHOLD` → "Is this query even about the books at all?" Checked once, against the single best-scoring candidate, **before** any per-result filtering happens.
-- `hard_min` (the sidebar slider) → "Among results that *are* about the books, which are strong enough to show?"
+Check POPPLER_PATH
 
-If the best candidate's score is below `RELEVANCE_THRESHOLD`, the app shows a Hindi message explaining the query seems unrelated to the Dada Bhagwan books, regardless of what the sidebar slider is set to.
+Qdrant connection fails
 
-### Multi-script query input
+Make sure Docker and the Qdrant container are running
 
-Queries typed in plain Latin script (detected via `looks_romanized()`) are transliterated from romanized Hindi (ITRANS-style spelling) to Devanagari via the `indic-transliteration` library before being embedded. This matters because the index itself is built entirely from Devanagari OCR text — searching with a mismatched script otherwise produces much weaker similarity scores. Devanagari queries pass through unchanged.
+Search returns no results
 
----
+Run python check_points.py; if the collection is empty, build the index
 
-## Currently Indexed Books
+Streamlit command is not found or blocked
 
-| Book | Pages | Content |
-|---|---|---|
-| manav-dharma_hindi | 42 | Prashnkarta/Dadashree dialogue on human ethics |
-| pratikraman_hindi | 114 | Prashnkarta/Dadashree dialogue on self-reflection |
+Use python -m streamlit run app.py
 
-> Update this table after re-running `build_index.py` with new books — point counts can be checked at `http://localhost:6333/dashboard#/collections`.
+PyTorch/Transformers import errors
 
----
+Recreate the virtual environment and reinstall the pinned package versions
 
-## Troubleshooting
+10. Current Indexed Books
 
-| Problem | Solution |
-|---|---|
-| Virtual environment not activating | Make sure you're in the project folder and run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` |
-| `(venv)` not showing in prompt | The virtual environment didn't activate. Try: `python -m venv venv` then `.\venv\Scripts\Activate.ps1` |
-| `ModuleNotFoundError` when running scripts | Make sure `(venv)` shows in your prompt. If not, activate venv first |
-| `ImportError: DLL load failed` / "blocked by an Application Control policy" | Windows Smart App Control or a managed-device policy is blocking an unsigned `.exe`/`.dll`. Try running via `python -m <tool>` instead of the `.exe` directly; on a managed/work device this needs IT to allowlist the path |
-| `AttributeError: module 'torch' has no attribute '_utils'` or `NameError: name 'nn' is not defined` | Broken/mismatched `torch`/`transformers` versions — delete `venv`, recreate it, and install the exact pinned versions from `requirements.txt` |
-| `ModuleNotFoundError: No module named 'torchvision'` | Run `python -m pip install torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu` |
-| Qdrant connection failed | Start Docker and run: `docker run -d -p 6333:6333 qdrant/qdrant` |
-| Streamlit command not found / blocked | Activate venv and verify with `pip list`; try `python -m streamlit run app.py` |
-| Tesseract not found | Check `TESSERACT_CMD` in `config.py` points to your installation |
-| Poppler not found | Check `POPPLER_PATH` in `config.py` points to your extraction |
-| Web UI won't start | Check port 8501 is available; stop any existing Streamlit instance |
-| Search returns zero results at any confidence level | Check `http://localhost:6333/dashboard#/collections` — if points count is 0, `build_index.py` was never actually run (or ran against an empty/broken environment); re-run it |
-| Search finds nothing for a Hinglish/romanized query specifically | Confirm `looks_romanized()` and `transliterate_to_devanagari()` are actually being called inside `run_search()` — these were written once but not wired in initially; check the `search_query` variable is what actually gets passed to `model.encode()` |
-| An off-topic query (e.g. unrelated small talk) still returns a confident-looking answer | Check `RELEVANCE_THRESHOLD` in `app.py` is being checked against `best_score` returned from `run_search()`, not against the post-filter `results` list — if `hard_min` already filtered everything out, `results` will be empty and the off-topic branch needs `best_score`, not `results`, to detect this case |
+The project notes list these books as indexed:
 
----
+Book identifier
 
-## Performance & Timing
+Pages
 
-### First Run (Complete Pipeline)
+Topic described in project notes
 
-| Step | Time | Why |
-|---|---|---|
-| Download BGE-M3 model | 5-15 min | ~1.5 GB one-time download |
-| Convert PDFs → Images | 2-5 min | 400 DPI per-page conversion |
-| Run Hindi OCR | 10-30 min | Tesseract text extraction per page |
-| Generate embeddings | 5-10 min | 1024-dim vectors per paragraph |
-| Upload to Qdrant | 1-2 min | Index storage |
-| **Total First Run** | **25-60 min** | One-time investment |
+manav-dharma_hindi
 
-### Subsequent Runs
-- **Just searching** (no new books): **3-5 seconds** — Model and index cached ✅
-- **Adding new book**: **5-15 minutes** — Only new book processed, old books skipped ✅
+42
 
-### Why It's Fast After First Run
-- ✅ Model cached in memory (`@st.cache_resource`)
-- ✅ Images skipped if already exist (checked in `convert_pdf.py`)
-- ✅ Qdrant persisted on disk (only loaded once)
-- ✅ Image highlighting cached (`@st.cache_data`)
+Dialogue about human ethics
 
----
+pratikraman_hindi
 
-## Notes
+114
 
-- The embedding model is downloaded automatically on first run of `build_index.py` or `app.py` (BGE-M3 ~1.5GB, one-time only)
-- OCR quality depends on PDF scan quality. Higher DPI generally improves results, but increases processing time
-- Rebuilding the index always recreates the Qdrant collection from scratch — this ensures a clean, deduplicated index
-- The project supports any Indic language supported by Tesseract — just change `OCR_LANG` in `config.py` and install the language pack
-- Only pages containing `प्रश्नकर्ता` (Prashnkarta) or `दादाश्री` (Dadashree) keywords are indexed — pages with contact numbers, publisher info, and cover pages are automatically filtered out
-- The fuzzy OCR matching algorithm (`difflib.SequenceMatcher` with `autojunk=False`) handles the fact that re-OCRing a page at display time rarely produces byte-identical output to the OCR captured at indexing time — this ensures highlighting is reliable despite OCR drift
-- BGE-M3 requires no query/passage prefixes (unlike `multilingual-e5-small` which required them) — just use plain text
-- Hinglish/romanized-Hindi transliteration quality depends on the `indic-transliteration` ITRANS scheme, which expects fairly consistent spelling conventions. Casual/inconsistent Hinglish typing may transliterate imperfectly — a neural alternative (`ai4bharat-transliteration`, the IndicXlit model) is a possible upgrade if this becomes a real problem with actual users
+Dialogue about self-reflection
 
+This list may be out of date. Confirm the current Qdrant collection after rebuilding the index.
 
-#   h i n d i _ p d f _ s e a r c h  
- 
+11. Notes for Developers and Researchers
+
+Before changing or evaluating the pipeline, verify the following in the current code:
+
+OCR flow: confirm which script extracts text and how the scripts are called by run_all.py.
+
+Index reset: confirm that the team is comfortable with build_index.py recreating the collection before running it on valuable data.
+
+Query relevance: compare the web app and CLI thresholds so results are consistent where intended.
+
+Hinglish handling: test common user spellings, since transliteration may not handle every informal spelling correctly.
+
+Evaluation: test with a small set of questions whose expected source pages are known, and record retrieval relevance and highlighting accuracy.
+
+Language support: changing OCR_LANG alone may not be sufficient; install the corresponding Tesseract language data and test the full pipeline.
+
+12. Performance Notes
+
+The original project notes estimate the first full run at roughly 25–60 minutes, including model download, PDF conversion, OCR, embedding generation, and indexing. Actual time depends on PDF size, hardware, and the number of pages.
+
+After the index and model are ready, searches should generally be much faster than the initial setup. Treat the original timing estimates as approximate, not as performance guarantees.
