@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+streamlit.log
+
+# Editor / tool folders
+.vscode/
+.claude/
+
+
+# Vector database (local data, not code)
+qdrant_db/
+
+# Generated pipeline output (large, regenerable from pdfs/)
+images/
+json/
+
+# Source PDFs (remove this line if you want them in the repo instead)
+pdfs/
+
+# OS junk files
+.DS_Store
+Thumbs.db

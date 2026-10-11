@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update Docs on Session End",
+      "trigger": "Stop",
+      "description": "After each session ends, automatically review and update README.md, SKILL.md, and AGENTS.md to reflect any changes made during the session.",
+      "action": {
+        "type": "agent",
+        "prompt": "At the end of this session, review the current state of the Hindi PDF Search project and update the documentation files if anything has changed:\n\n1. **README.md** (project root) — Update if:\n   - New books have been added to `images/` or `json/`\n   - New scripts or files were added/removed\n   - Configuration defaults in `config.py` changed\n   - Setup steps or dependencies changed\n\n2. **.agents/SKILL.md** — Update if:\n   - Pipeline steps changed\n   - New capabilities or scripts were added\n   - Configuration reference values changed\n\n3. **.agents/AGENTS.md** — Update if:\n   - New coding rules or patterns emerged during the session\n   - New files were added that need a responsibility entry\n   - Any \"What NOT to Do\" items were discovered\n\nOnly update sections that are actually out of date. Do not rewrite sections that are still accurate. Keep the same tone and formatting style already present in each file."
+      }
+    }
+  ]
+}

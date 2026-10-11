@@ -1,0 +1,17 @@
+streamlit
+pdf2image
+pytesseract
+Pillow
+opencv-python
+qdrant-client
+indic-transliteration
+
+# Pinned together — these versions are known to work correctly with
+# each other. Letting any of these float to "latest" has repeatedly
+# pulled in unstable/bleeding-edge builds that break on import.
+
+torch==2.4.1
+torchvision==0.19.1
+transformers==4.44.2
+accelerate==0.34.2
+sentence-transformers==3.1.1
